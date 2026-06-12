@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using InventoryManagement.Application.Utils;   
+using InventoryManagement.Domain.Entities;  
+using InventoryManagement.Infrastructure.Data;  
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;  
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Configuration;
 
 namespace InventoryManagement.API.Controllers
 {
@@ -13,31 +17,59 @@ namespace InventoryManagement.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
-
-        public AuthController(IConfiguration config)
+        private readonly InventoryDbContext _context;    
+        public AuthController(IConfiguration config, InventoryDbContext context)
         {
             _config = config;
+            _context = context;
         }
 
+        //register api
+        [HttpPost("register")]
+        public IActionResult Register(string username, string password, string role)
+        {
+            //check user exist or not 
+            if (_context.Users.Any(u => u.Username == username))
+                return BadRequest("User already exists!");
+
+            var user = new User
+            {
+                Username = username,
+                PasswordHash = PasswordHasher.HashPassword(password), 
+                Role = role
+            };
+
+            _context.Users.Add(user);
+            _context.SaveChanges();
+
+            return Ok("User registered successfully!");
+        }
+
+        //login api
         [HttpPost("login")]
         public IActionResult Login(string username, string password)
         {
-            // Ekhonkar moto Dummy check. Pore eta Database theke check korbo.
-            if (username == "admin" && password == "12345")
+            //searching actual user from database  
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+
+           //if user cant find or pass hash dont matched then through a error
+            if (user == null || !PasswordHasher.VerifyPassword(password, user.PasswordHash))
             {
-                var token = GenerateJwtToken(username, "Admin"); // Admin Role dicchi
-                return Ok(new { Token = token });
+                return Unauthorized("Invalid Credentials");
             }
 
-            return Unauthorized("Invalid Credentials");
+            //method for make token
+            var token = GenerateJwtToken(user.Username, user.Role);
+            return Ok(new { Token = token });
         }
 
+        
         private string GenerateJwtToken(string username, string role)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            // Token er bhitor ki ki data thakbe (Claims)
+            //for token 
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, username),
@@ -48,7 +80,7 @@ namespace InventoryManagement.API.Controllers
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30), // 30 minute meyad
+                expires: DateTime.Now.AddMinutes(30), // 30 minute  for expired time
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

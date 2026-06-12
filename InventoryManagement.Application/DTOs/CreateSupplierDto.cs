@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
 namespace InventoryManagement.Application.DTOs
 {
-    public class ProductDto
+    public class CreateSupplierDto
     {
-        public int Id { get; set; }
         public string Name { get; set; }
-        public decimal Price { get; set; }
-        public string SupplierName { get; set; }
+        public string ContactEmail { get; set; }
     }
 }

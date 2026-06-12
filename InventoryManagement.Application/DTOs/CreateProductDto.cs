@@ -6,8 +6,12 @@ namespace InventoryManagement.Application.DTOs
 {
     public class CreateProductDto
     {
-        // Ekhane Id nei, karon user theke Id neya hobe na
+        
         public string Name { get; set; }
         public decimal Price { get; set; }
+        public int StockQuantity { get; set; }
+        public int? CategoryId { get; set; }
+        public int? SupplierId { get; set; } 
+
     }
 }

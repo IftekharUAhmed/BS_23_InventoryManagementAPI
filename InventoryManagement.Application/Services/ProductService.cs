@@ -1,48 +1,63 @@
-﻿using InventoryManagement.Application.DTOs;
+﻿using System.Collections.Generic;
+using AutoMapper;
+using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
-using System.Collections.Generic;
 
 namespace InventoryManagement.Application.Services
 {
     public class ProductService
     {
         private readonly IProductRepository _repository;
+        private readonly IMapper _mapper;
 
-        public ProductService(IProductRepository repository)
+        public ProductService(IProductRepository repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
 
-        public List<ProductDto> GetAllProducts()
+        //for create
+        public void AddProduct(CreateProductDto productDto)
         {
-            var products = _repository.Get();
-
-            // Sir-er AutoMapper Magic bebohar kore
-            var mapper = MapperConfig.GetMapper();
-            var productDtos = mapper.Map<List<ProductDto>>(products);
-
-            return productDtos;
+            var product = _mapper.Map<Product>(productDto);
+            _repository.Add(product);
         }
 
+        //for search 
+        public IEnumerable<ProductDto> SearchProducts(string name)
+        {
+            var products = _repository.Search(name);
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
+        }
+
+        //get by id 
         public ProductDto GetProductById(int id)
         {
-            var product = _repository.Get(id);
-            if (product == null) return null;
-
-            // Single object mapping
-            var mapper = MapperConfig.GetMapper();
-            return mapper.Map<ProductDto>(product);
+            var product = _repository.GetById(id);
+            return _mapper.Map<ProductDto>(product);
         }
 
-        public bool AddProduct(CreateProductDto createDto)
+        //for update
+        public void UpdateProduct(int id, CreateProductDto productDto)
         {
-            var mapper = MapperConfig.GetMapper();
+            var product = _repository.GetById(id);
+            if (product != null)
+            {
+                 
+                _mapper.Map(productDto, product);
+                _repository.Update(product);
+            }
+        }
 
-            // dto theke ashol Entity-te map kora (ashol data db te jabe)
-            var product = mapper.Map<Product>(createDto);
-
-            return _repository.Create(product);
+        //delete 
+        public void DeleteProduct(int id)
+        {
+            var product = _repository.GetById(id);
+            if (product != null)
+            {
+                _repository.Delete(product);
+            }
         }
     }
 }

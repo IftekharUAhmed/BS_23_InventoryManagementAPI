@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using InventoryManagement.Application.Services;
+using System.Collections.Generic;
 using InventoryManagement.Application.DTOs;
-using Microsoft.AspNetCore.Authorization;
+using InventoryManagement.Application.Services;
+using Microsoft.AspNetCore.Authorization; 
 
 namespace InventoryManagement.API.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
+    [Authorize] //  
     public class ProductsController : ControllerBase
     {
         private readonly ProductService _productService;
@@ -16,31 +18,44 @@ namespace InventoryManagement.API.Controllers
             _productService = productService;
         }
 
+        //search & get all api  
         [HttpGet]
-        public IActionResult GetAll()
+        public ActionResult<IEnumerable<ProductDto>> Search([FromQuery] string name = "")
         {
-            var products = _productService.GetAllProducts();
+            var products = _productService.SearchProducts(name);
             return Ok(products);
         }
-
+ 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public ActionResult<ProductDto> Get(int id)
         {
             var product = _productService.GetProductById(id);
-            if (product == null) return NotFound("Product not found");
-
+            if (product == null) return NotFound(" db cant found!");
             return Ok(product);
         }
-        [Authorize(Roles = "Admin")]
+
+        //cretae api  
         [HttpPost]
-        public IActionResult Create([FromBody] CreateProductDto createDto)
+        public ActionResult Add([FromBody] CreateProductDto productDto)
         {
-            var isCreated = _productService.AddProduct(createDto);
-            if (isCreated)
-            {
-                return Ok("Product created successfully!");
-            }
-            return BadRequest("Failed to create product.");
+            _productService.AddProduct(productDto);
+            return Ok(" added new product");
+        }
+
+        //update api  
+        [HttpPut("{id}")]
+        public ActionResult Update(int id, [FromBody] CreateProductDto productDto)
+        {
+            _productService.UpdateProduct(id, productDto);
+            return Ok("Product updated successfully  !");
+        }
+
+        //delete api 
+        [HttpDelete("{id}")]
+        public ActionResult Delete(int id)
+        {
+            _productService.DeleteProduct(id);
+            return Ok("Product deleted!");
         }
     }
 }

@@ -4,11 +4,10 @@ using System.Text;
 
 namespace InventoryManagement.Application.DTOs
 {
-    public class ProductDto
+    public class CreateCategoryDto
     {
-        public int Id { get; set; }
         public string Name { get; set; }
-        public decimal Price { get; set; }
-        public string SupplierName { get; set; }
+        public string Description { get; set; }
     }
 }
+

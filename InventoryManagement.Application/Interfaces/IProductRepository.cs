@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Text;
 using InventoryManagement.Domain.Entities;
-using System.Collections.Generic;
-
+ 
 namespace InventoryManagement.Application.Interfaces
 {
     public interface IProductRepository
     {
-        List<Product> Get();
-        Product Get(int id);
-        bool Create(Product p);
-        bool Update(Product p);
-        bool Delete(int id);
+        void Add(Product product);                 
+        void Update(Product product);              
+        void Delete(Product product);              
+        Product GetById(int id);                   
+        IEnumerable<Product> Search(string name); // product search by id 
     }
 }

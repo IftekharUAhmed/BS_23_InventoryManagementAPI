@@ -1,52 +1,49 @@
-﻿using InventoryManagement.Application.Interfaces;
-using InventoryManagement.Domain.Entities;
-using InventoryManagement.Infrastructure.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using InventoryManagement.Domain.Entities;
+using InventoryManagement.Application.Interfaces;
+using InventoryManagement.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagement.Infrastructure.Repositories
 {
     public class ProductRepository : IProductRepository
     {
-        private readonly InventoryDbContext db;
+        private readonly InventoryDbContext _context;
 
-        public ProductRepository(InventoryDbContext db)
+        public ProductRepository(InventoryDbContext context)
         {
-            this.db = db;
+            _context = context;
         }
-
-        public List<Product> Get()
+        public void Add(Product product)
         {
-            return db.Products.ToList();
+            _context.Products.Add(product);
+            _context.SaveChanges();
+        } 
+        public void Update(Product product)
+        {
+            _context.Products.Update(product);
+            _context.SaveChanges();
         }
-
-        public Product Get(int id)
+        public void Delete(Product product)
         {
-            return db.Products.Find(id);  
+            _context.Products.Remove(product);
+            _context.SaveChanges();
         }
-
-        public bool Create(Product p)
+        public Product GetById(int id)
         {
-            db.Products.Add(p);
-            return db.SaveChanges() > 0;
+            
+            return _context.Products.Include(p => p.Supplier).FirstOrDefault(p => p.Id == id);
         }
-
-        public bool Update(Product p)
+        public IEnumerable<Product> Search(string name)
         {
-            var exobj = Get(p.Id);
-            if (exobj == null) return false;
+            if (string.IsNullOrEmpty(name))
+            {
+                return _context.Products.Include(p => p.Supplier).ToList();
+            }
 
-            db.Entry(exobj).CurrentValues.SetValues(p);
-            return db.SaveChanges() > 0;
-        }
-
-        public bool Delete(int id)
-        {
-            var exobj = Get(id);
-            if (exobj == null) return false;
-
-            db.Products.Remove(exobj);
-            return db.SaveChanges() > 0;
+            return _context.Products.Include(p => p.Supplier)
+                .Where(p => p.Name.Contains(name)).ToList();
         }
     }
 }
