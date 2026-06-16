@@ -1,14 +1,7 @@
-﻿using InventoryManagement.Application.Utils;   
-using InventoryManagement.Domain.Entities;  
-using InventoryManagement.Infrastructure.Data;  
+﻿using InventoryManagement.Application.DTOs;
+using InventoryManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;  
-using System.Security.Claims;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace InventoryManagement.API.Controllers
 {
@@ -16,74 +9,31 @@ namespace InventoryManagement.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _config;
-        private readonly InventoryDbContext _context;    
-        public AuthController(IConfiguration config, InventoryDbContext context)
+        private readonly IAuthService _authService;
+
+        public AuthController(IAuthService authService)
         {
-            _config = config;
-            _context = context;
+            _authService = authService;
         }
 
-        //register api
         [HttpPost("register")]
-        public IActionResult Register(string username, string password, string role)
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            //check user exist or not 
-            if (_context.Users.Any(u => u.Username == username))
-                return BadRequest("User already exists!");
+            var result = await _authService.RegisterAsync(dto);
+            if (result == "User already exists!")
+                return BadRequest(result);
 
-            var user = new User
-            {
-                Username = username,
-                PasswordHash = PasswordHasher.HashPassword(password), 
-                Role = role
-            };
-
-            _context.Users.Add(user);
-            _context.SaveChanges();
-
-            return Ok("User registered successfully!");
+            return Ok(result);
         }
 
-        //login api
         [HttpPost("login")]
-        public IActionResult Login(string username, string password)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            //searching actual user from database  
-            var user = _context.Users.FirstOrDefault(u => u.Username == username);
-
-           //if user cant find or pass hash dont matched then through a error
-            if (user == null || !PasswordHasher.VerifyPassword(password, user.PasswordHash))
-            {
+            var token = await _authService.LoginAsync(dto);
+            if (token == null)
                 return Unauthorized("Invalid Credentials");
-            }
 
-            //method for make token
-            var token = GenerateJwtToken(user.Username, user.Role);
             return Ok(new { Token = token });
-        }
-
-        
-        private string GenerateJwtToken(string username, string role)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            //for token 
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Role, role)
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(30), // 30 minute  for expired time
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
