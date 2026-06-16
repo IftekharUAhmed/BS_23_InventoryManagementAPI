@@ -27,5 +27,25 @@ namespace InventoryManagement.Application.Services
         {
             return _mapper.Map<IEnumerable<CategoryDto>>(_repository.GetAll());
         }
+
+        public void UpdateCategory(int id, UpdateCategoryDto dto)
+        {
+            var category = _repository.GetById(id);
+            if (category != null)
+            {
+                category.Name = dto.Name;
+                category.Description = dto.Description;
+                _repository.Update(category);
+            }
+        }
+
+        public void DeleteCategory(int id)
+        {
+            var category = _repository.GetById(id);
+            if (category != null)
+            {
+                _repository.Delete(category);
+            }
+        }
     }
 }

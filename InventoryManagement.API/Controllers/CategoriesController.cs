@@ -27,5 +27,19 @@ namespace InventoryManagement.API.Controllers
         _categoryService.AddCategory(dto); 
         return Ok("Category Added!"); 
         }
+        [HttpPut("{id}")]
+        public ActionResult Update(int id, [FromBody] UpdateCategoryDto dto)
+        {
+            _categoryService.UpdateCategory(id, dto);
+            return Ok("Category Updated Successfully!");
+        }
+
+        [HttpDelete("{id}")]
+        public ActionResult Delete(int id)
+        {
+            _categoryService.DeleteCategory(id);
+            return Ok("Category Deleted Successfully!");
+        }
+
     }
 }

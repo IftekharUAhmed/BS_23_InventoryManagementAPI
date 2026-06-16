@@ -6,7 +6,12 @@ using InventoryManagement.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.OpenApi;  
+using Microsoft.OpenApi;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using InventoryManagement.Application.Validators;
+using System.Reflection;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +28,8 @@ builder.Services.AddScoped<IInventoryTransactionRepository, InventoryTransaction
 builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
@@ -58,16 +65,19 @@ builder.Services.AddSwaggerGen(c =>
         Description = " paste your token here"
     });
 
-    
+
     c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
+    var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, "InventoryManagement.API.xml");
+    c.IncludeXmlComments(xmlPath);
 });
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
+app.UseMiddleware<InventoryManagement.API.Middleware.ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

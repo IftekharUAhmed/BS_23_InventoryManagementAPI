@@ -24,5 +24,17 @@ namespace InventoryManagement.Infrastructure.Repositories
             return 
          _context.Categories.FirstOrDefault(c => c.Id == id);
         }
+
+        public void Update(Category category)
+        {
+            _context.Categories.Update(category);
+            _context.SaveChanges();
+        }
+
+        public void Delete(Category category)
+        {
+            _context.Categories.Remove(category);
+            _context.SaveChanges();
+        }
     }
 }

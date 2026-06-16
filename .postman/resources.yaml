@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: c9137924-f4eb-4bb0-8400-1e45d6923fe8
+
+localResources:
+  specs:
+    - ..\InventoryManagement.API\obj\Debug\net10.0\EndpointInfo\InventoryManagement.API.json

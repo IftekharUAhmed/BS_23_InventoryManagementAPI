@@ -6,6 +6,6 @@ namespace InventoryManagement.Application.DTOs
     public class CreateSupplierDto
     {
         public string Name { get; set; }
-        public string ContactEmail { get; set; }
+        public string Email { get; set; }
     }
 }

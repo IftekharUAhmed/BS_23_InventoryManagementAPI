@@ -11,5 +11,7 @@ namespace InventoryManagement.Application.Interfaces
         void Add(Category category);
         IEnumerable<Category> GetAll();
         Category GetById(int id);
+        void Update(Category category);
+        void Delete(Category category);
     }
 }

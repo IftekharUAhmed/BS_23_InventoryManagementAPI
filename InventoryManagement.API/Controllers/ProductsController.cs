@@ -18,10 +18,13 @@ namespace InventoryManagement.API.Controllers
             _productService = productService;
         }
 
-        //search & get all api  
+         ///<summary>
+        /// search and get all api
+        /// </summary>  
         [HttpGet]
         public ActionResult<IEnumerable<ProductDto>> Search([FromQuery] string name = "")
         {
+            int test = 1;
             var products = _productService.SearchProducts(name);
             return Ok(products);
         }
