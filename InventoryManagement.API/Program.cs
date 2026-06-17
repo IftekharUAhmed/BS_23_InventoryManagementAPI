@@ -79,7 +79,6 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 var app = builder.Build();
 app.UseMiddleware<InventoryManagement.API.Middleware.ExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
